@@ -20,7 +20,7 @@ export async function POST(
   // Verify meeting belongs to user
   const { data: meeting } = await supabase
     .from('meetings')
-    .select('id, title, started_at, user_id')
+    .select('*')
     .eq('id', params.id)
     .single()
 
