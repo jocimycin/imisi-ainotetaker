@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { askAboutMeeting } from '@imisi/ai/analyse'
+import type { Meeting } from '@/types/database'
 
 export async function POST(
   req: NextRequest,
@@ -22,7 +23,7 @@ export async function POST(
     .from('meetings')
     .select('*')
     .eq('id', params.id)
-    .single()
+    .single() as { data: Meeting | null; error: unknown }
 
   if (!meeting || meeting.user_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
