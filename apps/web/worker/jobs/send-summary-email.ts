@@ -4,7 +4,9 @@ import { createClient } from '@supabase/supabase-js'
 import type { AnalysisResult } from '@imisi/ai/analyse'
 import type { Database } from '@/types/database'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 function getServiceSupabase() {
   return createClient<Database>(
@@ -46,6 +48,7 @@ export async function sendSummaryEmail(meetingId: string, analysis: AnalysisResu
     analysis,
   })
 
+  const resend = getResend()
   for (const attendee of recipients) {
     const { error } = await resend.emails.send({
       from: `Imisi <${process.env.RESEND_FROM_EMAIL}>`,
