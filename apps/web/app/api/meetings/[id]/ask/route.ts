@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { askAboutMeeting } from '@imisi/ai/analyse'
-import type { Meeting } from '@/types/database'
+import type { Meeting, Transcript } from '@/types/database'
 
 export async function POST(
   req: NextRequest,
@@ -31,9 +31,9 @@ export async function POST(
 
   const { data: transcript } = await supabase
     .from('transcripts')
-    .select('raw_text')
+    .select('*')
     .eq('meeting_id', params.id)
-    .single()
+    .single() as { data: Transcript | null; error: unknown }
 
   if (!transcript?.raw_text) {
     return NextResponse.json({ error: 'No transcript available' }, { status: 404 })
