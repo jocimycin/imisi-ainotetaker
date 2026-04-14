@@ -1,5 +1,7 @@
 'use client'
 // apps/web/app/auth/login/page.tsx
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {

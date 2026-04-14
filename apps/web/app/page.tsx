@@ -1,4 +1,6 @@
 // apps/web/app/page.tsx
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
