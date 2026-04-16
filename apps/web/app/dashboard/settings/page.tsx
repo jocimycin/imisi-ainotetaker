@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { IntegrationsPanel } from '@/components/settings/IntegrationsPanel'
+import { BillingPanel } from '@/components/settings/BillingPanel'
 
 export default async function SettingsPage() {
   const supabase = createClient()
@@ -10,13 +11,13 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('*')
+    .select('full_name, email, plan, stripe_customer_id')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { full_name?: string | null; email: string; plan?: string | null; stripe_customer_id?: string | null } | null; error: unknown }
 
   const { data: integrations } = await supabase
     .from('integrations')
-    .select('provider, created_at, token_expires_at')
+    .select('provider, created_at, token_expires_at, calendar_sync_enabled, task_push_enabled')
     .eq('user_id', user.id)
 
   return (
@@ -45,7 +46,15 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      <IntegrationsPanel connectedProviders={integrations?.map((i) => i.provider) ?? []} />
+      <IntegrationsPanel
+        connectedProviders={integrations?.map((i) => i.provider) ?? []}
+        integrations={(integrations ?? []) as any}
+      />
+
+      <BillingPanel
+        currentPlan={profile?.plan ?? 'free'}
+        hasStripeCustomer={!!profile?.stripe_customer_id}
+      />
 
       <div className="border border-gray-100 rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100">

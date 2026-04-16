@@ -1,7 +1,7 @@
 // apps/web/app/dashboard/layout.tsx
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/ui/Sidebar'
+import { DashboardShell } from '@/components/ui/DashboardShell'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -15,11 +15,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .single()
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar user={profile} />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
-    </div>
+    <DashboardShell user={profile}>
+      {children}
+    </DashboardShell>
   )
 }
