@@ -28,19 +28,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-sidebar-bg flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
+
+        {/* Logo mark */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-medium tracking-tight">Imisi</h1>
-          <p className="text-sm text-gray-400 mt-1">Your meeting intelligence assistant</p>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-600 mb-4 shadow-lg">
+            <svg width="22" height="18" viewBox="0 0 12 10" fill="none">
+              <path d="M1 5c0-2.21 2.24-4 5-4s5 1.79 5 4-2.24 4-5 4a5.4 5.4 0 0 1-2-.38L1 9.5V7.2A3.9 3.9 0 0 1 1 5Z" fill="white"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Imisi</h1>
+          <p className="text-sm text-sidebar-nav mt-1">Your meeting intelligence assistant</p>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-3">
-          <h2 className="text-base font-medium text-center mb-4">Sign in to continue</h2>
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-3 backdrop-blur-sm">
+          <h2 className="text-sm font-medium text-center text-white/80 mb-4">Sign in to continue</h2>
 
           <button
             onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white border border-white/20 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
@@ -53,7 +60,7 @@ export default function LoginPage() {
 
           <button
             onClick={signInWithMicrosoft}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-white/80 hover:bg-white/10 transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 21 21">
               <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
@@ -65,7 +72,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-4">
+        <p className="text-center text-xs text-sidebar-text mt-5">
           By signing in you agree to Imisi&apos;s terms of service.
         </p>
       </div>

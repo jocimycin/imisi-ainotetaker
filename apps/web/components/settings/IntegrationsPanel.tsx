@@ -135,7 +135,7 @@ export function IntegrationsPanel({ connectedProviders, integrations = [] }: Int
   }
 
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
       <div className="px-4 py-3 border-b border-gray-100">
         <h2 className="text-sm font-medium">Platform integrations</h2>
         <p className="text-xs text-gray-400 mt-0.5">Connect your meeting platforms so Imisi can join automatically</p>

@@ -15,7 +15,7 @@ export function SummaryPanel({ summary }: { summary: Summary }) {
   const decisions = (summary.decisions as Decision[]) ?? []
 
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <h2 className="text-sm font-medium">Summary</h2>
         {sentiment && (

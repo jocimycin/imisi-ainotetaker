@@ -24,9 +24,9 @@ export default async function TranscriptsPage() {
   const transcripts = data ?? []
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-medium">Transcripts</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Transcripts</h1>
         <span className="text-xs text-gray-400">{transcripts.length} transcripts</span>
       </div>
 
@@ -53,7 +53,7 @@ export default async function TranscriptsPage() {
 
           return (
             <Link key={t.id} href={`/dashboard/meetings/${meeting?.id}`}>
-              <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors cursor-pointer">
+              <div className="bg-surface-card border border-gray-100/80 rounded-xl p-4 hover:shadow-card-hover hover:border-gray-200 transition-all shadow-card cursor-pointer">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">

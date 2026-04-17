@@ -1,7 +1,5 @@
-'use client'
 // components/settings/BillingPanel.tsx
-
-import { useState } from 'react'
+// STUB — billing UI ready, Stripe integration not yet active
 
 const PLANS = [
   {
@@ -29,37 +27,9 @@ interface BillingPanelProps {
   hasStripeCustomer: boolean
 }
 
-export function BillingPanel({ currentPlan, hasStripeCustomer }: BillingPanelProps) {
-  const [loading, setLoading] = useState<string | null>(null)
-
-  async function upgrade(planId: string) {
-    setLoading(planId)
-    try {
-      const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId }),
-      })
-      const { url } = await res.json()
-      if (url) window.location.href = url
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  async function openPortal() {
-    setLoading('portal')
-    try {
-      const res = await fetch('/api/billing/portal', { method: 'POST' })
-      const { url } = await res.json()
-      if (url) window.location.href = url
-    } finally {
-      setLoading(null)
-    }
-  }
-
+export function BillingPanel({ currentPlan }: BillingPanelProps) {
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-medium">Billing</h2>
@@ -67,15 +37,9 @@ export function BillingPanel({ currentPlan, hasStripeCustomer }: BillingPanelPro
             Current plan: <span className="text-brand-700 font-medium capitalize">{currentPlan}</span>
           </p>
         </div>
-        {hasStripeCustomer && (
-          <button
-            onClick={openPortal}
-            disabled={loading === 'portal'}
-            className="text-xs px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:border-brand-300 hover:text-brand-700 transition-colors font-medium disabled:opacity-50"
-          >
-            {loading === 'portal' ? 'Opening...' : 'Manage billing'}
-          </button>
-        )}
+        <span className="text-xs px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full font-medium">
+          Payments coming soon
+        </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-50">
         {PLANS.map((plan) => {
@@ -104,13 +68,9 @@ export function BillingPanel({ currentPlan, hasStripeCustomer }: BillingPanelPro
                 ))}
               </ul>
               {isUpgrade && (
-                <button
-                  onClick={() => upgrade(plan.id)}
-                  disabled={loading === plan.id}
-                  className="w-full text-xs py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors font-medium disabled:opacity-50"
-                >
-                  {loading === plan.id ? 'Redirecting...' : `Upgrade to ${plan.name}`}
-                </button>
+                <div className="w-full text-xs py-1.5 rounded-lg border border-dashed border-gray-200 text-gray-400 text-center">
+                  Coming soon
+                </div>
               )}
             </div>
           )

@@ -32,16 +32,16 @@ export default async function MeetingDetailPage({ params }: { params: { id: stri
   const durationMin = meeting.duration_seconds ? Math.round(meeting.duration_seconds / 60) : null
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div>
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs text-gray-400 mb-1">
-              <a href="/dashboard/meetings" className="hover:underline">Meetings</a>
-              {' / '}
-              {meeting.title}
+            <p className="text-xs text-gray-400 mb-1.5 flex items-center gap-1">
+              <a href="/dashboard/meetings" className="hover:text-gray-600 transition-colors">Meetings</a>
+              <span className="text-gray-200">/</span>
+              <span className="text-gray-500 truncate max-w-xs">{meeting.title}</span>
             </p>
-            <h1 className="text-xl font-medium">{meeting.title ?? 'Untitled meeting'}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{meeting.title ?? 'Untitled meeting'}</h1>
             <p className="text-sm text-gray-400 mt-1">
               {meeting.started_at && format(new Date(meeting.started_at), 'EEEE d MMMM yyyy, h:mm a')}
               {durationMin && ` · ${durationMin} min`}

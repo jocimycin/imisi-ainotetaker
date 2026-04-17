@@ -26,8 +26,8 @@ export default async function SummariesPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
-      <h1 className="text-xl font-medium">Summaries</h1>
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-5">
+      <h1 className="text-2xl font-semibold tracking-tight">Summaries</h1>
 
       {summaries.length === 0 && (
         <div className="text-center py-16 border border-dashed border-gray-200 rounded-xl">
@@ -44,7 +44,7 @@ export default async function SummariesPage() {
 
           return (
             <a key={s.id} href={`/dashboard/meetings/${meeting?.id}`} className="block">
-              <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
+              <div className="bg-surface-card border border-gray-100/80 rounded-xl p-4 hover:shadow-card-hover hover:border-gray-200 transition-all shadow-card">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
                     <p className="text-sm font-medium text-gray-900">

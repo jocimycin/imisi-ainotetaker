@@ -35,9 +35,9 @@ export default async function MeetingsPage({
   const STATUS_TABS = ['all', 'live', 'complete', 'scheduled', 'processing', 'failed']
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-medium">Meetings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Meetings</h1>
         <ScheduleButton />
       </div>
 
@@ -63,7 +63,7 @@ export default async function MeetingsPage({
             name="q"
             defaultValue={searchParams.q}
             placeholder="Search meetings..."
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-300"
+            className="w-full text-sm bg-surface-card border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-400 shadow-card"
           />
         </form>
       </div>

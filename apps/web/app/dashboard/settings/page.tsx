@@ -21,10 +21,10 @@ export default async function SettingsPage() {
     .eq('user_id', user.id)
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-medium">Settings</h1>
+    <div className="p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
+      <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
         <div className="px-4 py-3 border-b border-gray-100">
           <h2 className="text-sm font-medium">Profile</h2>
         </div>
@@ -56,7 +56,7 @@ export default async function SettingsPage() {
         hasStripeCustomer={!!profile?.stripe_customer_id}
       />
 
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
+      <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
         <div className="px-4 py-3 border-b border-gray-100">
           <h2 className="text-sm font-medium">Notifications</h2>
         </div>

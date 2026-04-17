@@ -76,11 +76,11 @@ export default async function DashboardPage() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-7">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-medium">{greeting}, {firstName}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-semibold tracking-tight">{greeting}, {firstName}</h1>
+          <p className="text-sm text-gray-400 mt-0.5">
             {format(new Date(), 'EEEE, d MMMM yyyy')}
           </p>
         </div>
@@ -88,23 +88,24 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Meetings this week" value={weekMeetings ?? 0} sub={`${meetings?.filter(m => isToday(new Date(m.started_at!))).length ?? 0} today`} />
-        <StatCard label="Open action items" value={openActions ?? 0} sub="across all meetings" />
+        <StatCard label="Meetings this week" value={weekMeetings ?? 0} sub={`${meetings?.filter(m => isToday(new Date(m.started_at!))).length ?? 0} today`} accent />
+        <StatCard label="Open actions" value={openActions ?? 0} sub="across all meetings" />
         <StatCard label="Hours recorded" value={hoursRecorded} sub="this month" />
         <StatCard label="Summaries sent" value={summariesSent ?? 0} sub="all time" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider">Today's meetings</h2>
-            <a href="/dashboard/meetings" className="text-xs text-brand-600 hover:underline">See all</a>
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Today's meetings</h2>
+            <a href="/dashboard/meetings" className="text-xs text-brand-600 hover:text-brand-700 font-medium">See all →</a>
           </div>
           <div className="space-y-2">
             {meetings?.length === 0 && (
-              <p className="text-sm text-gray-400 py-4 text-center border border-dashed border-gray-200 rounded-lg">
-                No meetings scheduled today
-              </p>
+              <div className="py-10 text-center border border-dashed border-gray-200 rounded-xl bg-surface-card">
+                <p className="text-sm text-gray-400">No meetings today</p>
+                <p className="text-xs text-gray-300 mt-1">Schedule Imisi to join your next call</p>
+              </div>
             )}
             {meetings?.map(meeting => (
               <MeetingCard key={meeting.id} meeting={meeting} />
@@ -114,12 +115,12 @@ export default async function DashboardPage() {
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider">Action items</h2>
-            <a href="/dashboard/actions" className="text-xs text-brand-600 hover:underline">View all {openActions}</a>
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Open actions</h2>
+            <a href="/dashboard/actions" className="text-xs text-brand-600 hover:text-brand-700 font-medium">View all {openActions} →</a>
           </div>
-          <div className="border border-gray-100 rounded-xl divide-y divide-gray-50">
+          <div className="bg-surface-card border border-gray-100/80 rounded-xl divide-y divide-gray-50 shadow-card">
             {actions?.length === 0 && (
-              <p className="text-sm text-gray-400 py-4 text-center">No open action items</p>
+              <p className="text-sm text-gray-400 py-8 text-center">No open action items</p>
             )}
             {actions?.map(action => (
               <ActionRow key={action.id} action={action} />

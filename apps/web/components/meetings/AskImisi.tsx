@@ -41,7 +41,7 @@ export function AskImisi({ meetingId }: { meetingId: string }) {
   }
 
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
         <div className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center">
           <span className="text-brand-700 text-xs font-medium">I</span>

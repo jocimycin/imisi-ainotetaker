@@ -38,9 +38,9 @@ export default async function ActionsPage({
   )
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-medium">Action items</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Action items</h1>
         <div className="flex gap-3 text-xs text-gray-400">
           <span>{open.length} open</span>
           <span>{inProg.length} in progress</span>
@@ -64,7 +64,7 @@ export default async function ActionsPage({
       )}
 
       {open.filter((a) => !overdue.includes(a)).length > 0 && (
-        <div className="border border-gray-100 rounded-xl overflow-hidden">
+        <div className="bg-surface-card border border-gray-100/80 rounded-xl overflow-hidden shadow-card">
           <div className="px-4 py-2.5 border-b border-gray-100">
             <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider">Open</h2>
           </div>
@@ -79,7 +79,7 @@ export default async function ActionsPage({
       )}
 
       {inProg.length > 0 && (
-        <div className="border border-gray-100 rounded-xl overflow-hidden">
+        <div className="bg-surface-card border border-gray-100/80 rounded-xl overflow-hidden shadow-card">
           <div className="px-4 py-2.5 border-b border-gray-100">
             <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider">In progress</h2>
           </div>
@@ -92,7 +92,7 @@ export default async function ActionsPage({
       )}
 
       {done.length > 0 && (
-        <div className="border border-gray-100 rounded-xl overflow-hidden opacity-60">
+        <div className="bg-surface-card border border-gray-100/80 rounded-xl overflow-hidden shadow-card opacity-60">
           <div className="px-4 py-2.5 border-b border-gray-100">
             <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider">Done ({done.length})</h2>
           </div>
