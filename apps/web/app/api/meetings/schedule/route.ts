@@ -8,7 +8,8 @@ import { z } from 'zod'
 const ScheduleSchema = z.object({
   title: z.string().min(1),
   joinUrl: z.string().url(),
-  startAt: z.string().datetime(),
+  // Optional: omit or pass current time for "Join now" mode
+  startAt: z.string().datetime().optional(),
   attendees: z.array(z.object({ name: z.string(), email: z.string().email().optional() })),
 })
 
@@ -24,7 +25,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { title, joinUrl, startAt, attendees } = parsed.data
+  const { title, joinUrl, attendees } = parsed.data
+  // "Join now" passes current time; "Schedule later" passes a future time; omit = join now
+  const startAt = parsed.data.startAt ?? new Date().toISOString()
   const platform = detectPlatform(joinUrl)
 
   const { data: meeting, error } = await supabase

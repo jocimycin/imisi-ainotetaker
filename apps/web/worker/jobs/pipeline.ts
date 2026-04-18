@@ -8,7 +8,7 @@ import { getBotTranscript } from '@imisi/bots/recall/client'
 import { sendSummaryEmail } from './send-summary-email'
 import type { Database } from '@/types/database'
 
-export const inngest = new Inngest({ id: 'imisi' })
+export const inngest = new Inngest({ id: 'imisi-ainotetaker' })
 
 function getServiceSupabase() {
   return createClient<Database>(
@@ -18,13 +18,31 @@ function getServiceSupabase() {
 }
 
 // ─────────────────────────────────────────────
-// JOB 1: Triggered by Recall.ai webhook when meeting ends
+// JOB 1: Process a finished meeting
+//
+// Two entry paths share this single job:
+//
+//   Bot path (Recall.ai):
+//     Triggered by /api/webhooks/recall when bot.call_ended fires.
+//     Event data: { meetingId, botId }
+//     Action: fetches transcript from Recall.ai, then runs analysis.
+//
+//   Local recording path (in-browser):
+//     Triggered by /api/webhooks/assemblyai when transcription is complete.
+//     Event data: { meetingId, segments, rawText, language }
+//     Action: skips Recall.ai fetch, uses pre-parsed segments directly.
 // ─────────────────────────────────────────────
 export const onMeetingEnded = inngest.createFunction(
   { id: 'on-meeting-ended', name: 'Process ended meeting' },
   { event: 'imisi/meeting.ended' },
   async ({ event, step }) => {
-    const { meetingId, botId } = event.data
+    const {
+      meetingId,
+      botId,
+      segments: prebuiltSegments,
+      rawText: prebuiltRawText,
+      language: prebuiltLanguage,
+    } = event.data
     const supabase = getServiceSupabase()
 
     // Step 1: Mark as processing
@@ -35,27 +53,33 @@ export const onMeetingEnded = inngest.createFunction(
         .eq('id', meetingId)
     })
 
-    // Step 2: Fetch transcript from Recall.ai
-    const recallTranscript = await step.run('fetch-recall-transcript', async () => {
-      return getBotTranscript(botId)
-    })
-
-    // Step 3: Format and store transcript segments
+    // Step 2+3: Get transcript segments — from Recall.ai (bot) or pre-supplied (local recording)
     const segments = await step.run('store-transcript', async () => {
-      const formatted = recallTranscript.map((seg: any) => ({
-        speaker: seg.speaker ?? 'Unknown',
-        text: seg.words.map((w: any) => w.text).join(' '),
-        start_ms: (seg.words[0]?.start_timestamp ?? 0) * 1000,
-        end_ms: (seg.words[seg.words.length - 1]?.end_timestamp ?? 0) * 1000,
-      }))
+      let formatted: any[]
+      let rawText: string
 
-      const rawText = formatted.map((s: any) => `${s.speaker}: ${s.text}`).join('\n')
+      if (prebuiltSegments && prebuiltRawText) {
+        // Local recording path: AssemblyAI already parsed segments for us
+        formatted = prebuiltSegments
+        rawText = prebuiltRawText
+      } else {
+        // Bot path: fetch from Recall.ai and normalise to our segment format
+        const recallTranscript = await getBotTranscript(botId)
+        formatted = recallTranscript.map((seg: any) => ({
+          speaker: seg.speaker ?? 'Unknown',
+          text: seg.words.map((w: any) => w.text).join(' '),
+          start_ms: (seg.words[0]?.start_timestamp ?? 0) * 1000,
+          end_ms: (seg.words[seg.words.length - 1]?.end_timestamp ?? 0) * 1000,
+        }))
+        rawText = formatted.map((s: any) => `${s.speaker}: ${s.text}`).join('\n')
+      }
 
       await supabase.from('transcripts').insert({
         meeting_id: meetingId,
         raw_text: rawText,
         segments: formatted,
         word_count: rawText.split(' ').length,
+        language: prebuiltLanguage ?? 'en',
       })
 
       return { formatted, rawText }
@@ -119,7 +143,7 @@ export const onMeetingEnded = inngest.createFunction(
       }
     })
 
-    // Step 7: Send summary email to all attendees
+    // Step 7: Send summary email
     await step.run('send-summary-email', async () => {
       await sendSummaryEmail(meetingId, analysis)
     })
@@ -154,7 +178,8 @@ export const scheduleBotJoin = inngest.createFunction(
 
     if (!meeting?.join_url) throw new Error('No join URL for meeting')
 
-    // Wait until 2 minutes before the meeting starts
+    // Sleep until 2 minutes before start. If start is already past (Join Now mode),
+    // joinTime will be in the past and we skip the sleep entirely — bot joins immediately.
     const startTime = new Date(meeting.started_at!)
     const joinTime = new Date(startTime.getTime() - 2 * 60 * 1000)
     const now = new Date()
@@ -179,4 +204,17 @@ export const scheduleBotJoin = inngest.createFunction(
   }
 )
 
-export const functions = [onMeetingEnded, scheduleBotJoin]
+// ─────────────────────────────────────────────
+// JOB 3: Tracking event for local recordings submitted to AssemblyAI
+// No work to do — this is just a paper trail in the Inngest dashboard showing
+// the recording entered the pipeline, before the AssemblyAI webhook fires.
+// ─────────────────────────────────────────────
+export const onRecordingSubmitted = inngest.createFunction(
+  { id: 'on-recording-submitted', name: 'Local recording submitted' },
+  { event: 'imisi/recording.submitted' },
+  async ({ event }) => {
+    return { meetingId: event.data.meetingId, transcriptJobId: event.data.transcriptJobId }
+  }
+)
+
+export const functions = [onMeetingEnded, scheduleBotJoin, onRecordingSubmitted]

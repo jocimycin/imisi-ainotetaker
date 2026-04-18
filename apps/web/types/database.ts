@@ -42,6 +42,9 @@ export interface Database {
           join_url: string | null
           bot_id: string | null
           status: 'scheduled' | 'joining' | 'live' | 'processing' | 'complete' | 'failed'
+          source: 'bot' | 'local_recording'
+          recording_path: string | null
+          transcript_job_id: string | null
           started_at: string | null
           ended_at: string | null
           duration_seconds: number | null

@@ -17,7 +17,7 @@ export default async function SettingsPage() {
 
   const { data: integrations } = await supabase
     .from('integrations')
-    .select('provider, created_at, token_expires_at, calendar_sync_enabled, task_push_enabled')
+    .select('provider, created_at, token_expires_at, calendar_sync_enabled, task_push_enabled, calendar_last_synced_at')
     .eq('user_id', user.id)
 
   return (

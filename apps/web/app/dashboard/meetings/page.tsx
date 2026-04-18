@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { MeetingCard } from '@/components/meetings/MeetingCard'
 import { ScheduleButton } from '@/components/meetings/ScheduleButton'
+import { RecordButton } from '@/components/meetings/RecordButton'
 
 export default async function MeetingsPage({
   searchParams,
@@ -38,7 +39,10 @@ export default async function MeetingsPage({
     <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Meetings</h1>
-        <ScheduleButton />
+        <div className="flex items-center gap-2">
+          <RecordButton />
+          <ScheduleButton />
+        </div>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">

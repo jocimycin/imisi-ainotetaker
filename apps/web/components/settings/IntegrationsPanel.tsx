@@ -84,11 +84,23 @@ interface Integration {
   provider: string
   calendar_sync_enabled?: boolean
   task_push_enabled?: boolean
+  calendar_last_synced_at?: string | null
 }
 
 interface IntegrationsPanelProps {
   connectedProviders: string[]
   integrations?: Integration[]
+}
+
+function formatLastSynced(iso: string | null | undefined): string {
+  if (!iso) return 'Never synced'
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
 }
 
 export function IntegrationsPanel({ connectedProviders, integrations = [] }: IntegrationsPanelProps) {
@@ -106,6 +118,11 @@ export function IntegrationsPanel({ connectedProviders, integrations = [] }: Int
     }
     return map
   })
+
+  const lastSyncedMap: Record<string, string | null | undefined> = {}
+  for (const i of integrations) {
+    lastSyncedMap[i.provider] = i.calendar_last_synced_at
+  }
 
   function connect(provider: string) {
     window.location.href = `/api/auth/connect/${provider}`
@@ -185,17 +202,29 @@ export function IntegrationsPanel({ connectedProviders, integrations = [] }: Int
               {connected && (integration.hasCalendar || !integration.hasCalendar) && (
                 <div className="mt-2.5 ml-12 flex flex-wrap gap-4">
                   {integration.hasCalendar && (
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <button
-                        role="switch"
-                        aria-checked={calSync}
-                        onClick={() => toggleCalendarSync(integration.provider, !calSync)}
-                        className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${calSync ? 'bg-brand-600' : 'bg-gray-200'}`}
-                      >
-                        <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform ${calSync ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
-                      </button>
-                      <span className="text-xs text-gray-500">Auto-schedule from calendar</span>
-                    </label>
+                    <div className="flex flex-col gap-1">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <button
+                          role="switch"
+                          aria-checked={calSync}
+                          onClick={() => toggleCalendarSync(integration.provider, !calSync)}
+                          className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${calSync ? 'bg-brand-600' : 'bg-gray-200'}`}
+                        >
+                          <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform ${calSync ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                        </button>
+                        <span className="text-xs text-gray-500">Auto-schedule from calendar</span>
+                      </label>
+                      {calSync && (
+                        <p className="text-xs text-gray-400 pl-9">
+                          Last synced: <span className={lastSyncedMap[integration.provider] ? 'text-gray-500' : 'text-amber-500'}>
+                            {formatLastSynced(lastSyncedMap[integration.provider])}
+                          </span>
+                          {!lastSyncedMap[integration.provider] && (
+                            <span className="ml-1 text-amber-500">— check Inngest env vars</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
                   )}
                   {['notion', 'asana', 'jira'].includes(integration.provider) && (
                     <label className="flex items-center gap-2 cursor-pointer select-none">
