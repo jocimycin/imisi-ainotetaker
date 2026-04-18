@@ -1,7 +1,7 @@
 // apps/web/app/api/meetings/schedule/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { inngest } from '@/worker/jobs/pipeline'
+import { Client as QStashClient } from '@upstash/qstash'
 import { detectPlatform } from '@imisi/bots/recall/client'
 import { z } from 'zod'
 
@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
   }
 
   const { title, joinUrl, attendees } = parsed.data
-  // "Join now" passes current time; "Schedule later" passes a future time; omit = join now
   const startAt = parsed.data.startAt ?? new Date().toISOString()
   const platform = detectPlatform(joinUrl)
 
@@ -48,11 +47,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create meeting' }, { status: 500 })
   }
 
-  // Dispatch the Inngest job to join at the right time
-  await inngest.send({
-    name: 'imisi/meeting.schedule-bot',
-    data: { meetingId: meeting.id },
-  })
+  // Schedule the bot via QStash — dispatches to /api/bots/dispatch at join time
+  if (process.env.QSTASH_TOKEN) {
+    const qstash = new QStashClient({ token: process.env.QSTASH_TOKEN })
+    const joinTime = new Date(new Date(startAt).getTime() - 2 * 60 * 1000)
+    const delaySeconds = Math.max(0, Math.floor((joinTime.getTime() - Date.now()) / 1000))
+
+    await qstash.publishJSON({
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/bots/dispatch`,
+      ...(delaySeconds > 0 ? { delay: delaySeconds } : {}),
+      body: { meetingId: meeting.id },
+    })
+  }
 
   return NextResponse.json({ meeting })
 }

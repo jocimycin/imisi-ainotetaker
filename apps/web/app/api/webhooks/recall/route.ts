@@ -1,7 +1,11 @@
 // apps/web/app/api/webhooks/recall/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { inngest } from '@/worker/jobs/pipeline'
+import { Client as QStashClient } from '@upstash/qstash'
 import { createClient } from '@/lib/supabase/server'
+
+function getQStash() {
+  return new QStashClient({ token: process.env.QSTASH_TOKEN! })
+}
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-webhook-secret')
@@ -52,11 +56,13 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', meeting.id)
 
-        // Trigger the processing pipeline via Inngest
-        await inngest.send({
-          name: 'imisi/meeting.ended',
-          data: { meetingId: meeting.id, botId: data.bot_id },
-        })
+        // Dispatch pipeline via QStash (async — Vercel won't time out the webhook)
+        if (process.env.QSTASH_TOKEN) {
+          await getQStash().publishJSON({
+            url: `${process.env.NEXT_PUBLIC_APP_URL}/api/pipeline/run-meeting`,
+            body: { meetingId: meeting.id, botId: data.bot_id },
+          })
+        }
       }
       break
     }
