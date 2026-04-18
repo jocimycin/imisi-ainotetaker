@@ -1,5 +1,6 @@
 // app/api/auth/connect/[provider]/route.ts
 // Initiates OAuth for Google, Microsoft, Notion, Asana, Jira
+// redirect_uri format: /api/auth/connect/callback/{provider} (path param, not query param)
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
