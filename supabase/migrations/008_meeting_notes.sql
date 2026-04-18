@@ -27,9 +27,11 @@ CREATE TABLE IF NOT EXISTS note_entries (
 ALTER TABLE meeting_notes  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE note_entries   ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "owner access" ON meeting_notes;
 CREATE POLICY "owner access" ON meeting_notes
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "owner access" ON note_entries;
 CREATE POLICY "owner access" ON note_entries
   USING (meeting_id IN (SELECT id FROM meetings WHERE user_id = auth.uid()));
 

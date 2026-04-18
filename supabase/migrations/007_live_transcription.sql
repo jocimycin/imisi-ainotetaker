@@ -24,5 +24,6 @@ CREATE INDEX IF NOT EXISTS idx_transcript_segments_meeting
 
 ALTER TABLE transcript_segments ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "owner access" ON transcript_segments;
 CREATE POLICY "owner access" ON transcript_segments
   USING (meeting_id IN (SELECT id FROM meetings WHERE user_id = auth.uid()));
