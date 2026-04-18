@@ -31,6 +31,24 @@ export interface AnalysisResult {
   sentiment: 'positive' | 'neutral' | 'negative'
 }
 
+// 4C — Structured meeting document produced when user notes are present
+export interface DocumentSection {
+  heading: string
+  content: string | string[]
+}
+
+export interface DocumentResult {
+  title: string
+  sections: DocumentSection[]
+  // Mirrors existing fields so the pipeline can still populate the summary row
+  tldr: string
+  key_points: string[]
+  decisions: Array<{ decision: string; context: string }>
+  action_items: AnalysisResult['action_items']
+  topics: string[]
+  sentiment: 'positive' | 'neutral' | 'negative'
+}
+
 const SYSTEM_PROMPT = `You are Imisi, an intelligent meeting assistant.
 Analyse the provided meeting transcript and return a structured JSON object.
 Respond ONLY with valid JSON. No preamble, no markdown fences, no extra text.
@@ -63,30 +81,76 @@ JSON schema:
   "sentiment": "positive | neutral | negative"
 }`
 
+const DOCUMENT_SYSTEM_PROMPT = `You are Imisi, an intelligent meeting assistant.
+Produce a structured meeting document by merging the user's personal notes with the transcript.
+Respond ONLY with valid JSON. No preamble, no markdown fences, no extra text.
+
+Rules:
+- Preserve user notes VERBATIM in the "Your Notes" section — do not paraphrase or omit any.
+- Use the notes to inform highlights and action item extraction.
+- action_items should include any tasks that emerge from both notes and transcript.
+- tldr: 2-3 sentence plain-language summary.
+- key_points: 4-8 bullets covering the most important topics.
+- decisions: only clearly agreed items.
+- sentiment: overall energy and tone.
+
+JSON schema:
+{
+  "title": "string",
+  "sections": [
+    { "heading": "Your Notes", "content": ["string (each note entry verbatim)"] },
+    { "heading": "AI Highlights", "content": "string (paragraph)" },
+    { "heading": "Key Decisions", "content": ["string"] },
+    { "heading": "Open Questions", "content": ["string"] }
+  ],
+  "tldr": "string",
+  "key_points": ["string"],
+  "decisions": [{"decision": "string", "context": "string"}],
+  "action_items": [
+    {
+      "text": "string",
+      "assignee_name": "string | null",
+      "assignee_email": "string | null",
+      "due_date": "YYYY-MM-DD | null",
+      "priority": "low | medium | high",
+      "source_quote": "string | null"
+    }
+  ],
+  "topics": ["string"],
+  "sentiment": "positive | neutral | negative"
+}`
+
 export async function analyseMeeting(
   transcript: string,
-  metadata: MeetingMetadata
-): Promise<AnalysisResult> {
+  metadata: MeetingMetadata,
+  userNotes?: string
+): Promise<AnalysisResult | DocumentResult> {
+  const hasNotes = typeof userNotes === 'string' && userNotes.trim().length > 0
+
+  const notesBlock = hasNotes
+    ? `\nUSER NOTES (timestamped, preserve verbatim):\n${userNotes}\n`
+    : ''
+
   const userContent = `Meeting: ${metadata.title}
 Date: ${metadata.date}
 Platform: ${metadata.platform}
 Duration: ${metadata.durationMinutes} minutes
 Attendees: ${metadata.attendees.map((a) => a.name).join(', ')}
-
+${notesBlock}
 TRANSCRIPT:
 ${transcript}`
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
+    model: 'claude-sonnet-4-6',
+    max_tokens: hasNotes ? 4096 : 2000,
+    system: hasNotes ? DOCUMENT_SYSTEM_PROMPT : SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userContent }],
   })
 
   const raw = response.content[0].type === 'text' ? response.content[0].text : ''
 
   try {
-    return JSON.parse(raw) as AnalysisResult
+    return JSON.parse(raw) as AnalysisResult | DocumentResult
   } catch {
     throw new Error(`Failed to parse Claude response as JSON: ${raw.slice(0, 200)}`)
   }

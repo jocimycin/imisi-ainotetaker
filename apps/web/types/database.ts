@@ -78,10 +78,53 @@ export interface Database {
           topics: string[]
           sentiment: 'positive' | 'neutral' | 'negative' | null
           model_used: string | null
+          document_json: Json | null
+          has_user_notes: boolean
           created_at: string
         }
         Insert: Omit<Database['public']['Tables']['summaries']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['summaries']['Insert']>
+      }
+      transcript_segments: {
+        Row: {
+          id: string
+          meeting_id: string
+          segment_index: number
+          speaker: string | null
+          text: string
+          start_ms: number | null
+          end_ms: number | null
+          is_final: boolean
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['transcript_segments']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['transcript_segments']['Insert']>
+      }
+      meeting_notes: {
+        Row: {
+          id: string
+          meeting_id: string
+          user_id: string
+          content: string
+          content_json: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['meeting_notes']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['meeting_notes']['Insert']>
+      }
+      note_entries: {
+        Row: {
+          id: string
+          meeting_id: string
+          note_id: string
+          text: string
+          meeting_ms: number | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['note_entries']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['note_entries']['Insert']>
       }
       action_items: {
         Row: {
@@ -141,3 +184,6 @@ export type Summary = Database['public']['Tables']['summaries']['Row']
 export type ActionItem = Database['public']['Tables']['action_items']['Row']
 export type User = Database['public']['Tables']['users']['Row']
 export type Integration = Database['public']['Tables']['integrations']['Row']
+export type TranscriptSegmentRow = Database['public']['Tables']['transcript_segments']['Row']
+export type MeetingNote = Database['public']['Tables']['meeting_notes']['Row']
+export type NoteEntry = Database['public']['Tables']['note_entries']['Row']

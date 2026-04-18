@@ -5,7 +5,7 @@
 //   - Local path: AssemblyAI transcription completed webhook
 
 import { createClient } from '@supabase/supabase-js'
-import { analyseMeeting } from '@imisi/ai/analyse'
+import { analyseMeeting, type DocumentResult } from '@imisi/ai/analyse'
 import { getBotTranscript } from '@imisi/bots/recall/client'
 import { sendSummaryEmail } from '@/worker/jobs/send-summary-email'
 import type { Database } from '@/types/database'
@@ -66,19 +66,52 @@ export async function runMeetingPipeline(input: PipelineInput) {
   // 4. Run AI analysis
   const { data: meeting } = await supabase
     .from('meetings')
-    .select('title, started_at, platform, attendees, duration_seconds')
+    .select('title, started_at, platform, attendees, duration_seconds, user_id')
     .eq('id', meetingId)
     .single()
 
   if (!meeting) throw new Error(`Meeting ${meetingId} not found`)
 
-  const analysis = await analyseMeeting(rawText, {
-    title: meeting.title ?? 'Untitled meeting',
-    date: meeting.started_at ?? new Date().toISOString(),
-    platform: meeting.platform,
-    durationMinutes: Math.round((meeting.duration_seconds ?? 0) / 60),
-    attendees: (meeting.attendees as any[]) ?? [],
-  })
+  // 4A: Fetch user notes if any exist (4C smart document)
+  const { data: noteRow } = await supabase
+    .from('meeting_notes')
+    .select('content, note_entries(text, meeting_ms, sort_order)')
+    .eq('meeting_id', meetingId)
+    .eq('user_id', meeting.user_id)
+    .single()
+
+  let userNotes: string | undefined
+  if (noteRow?.note_entries && (noteRow.note_entries as any[]).length > 0) {
+    const entries = (noteRow.note_entries as Array<{ text: string; meeting_ms: number | null; sort_order: number }>)
+      .filter((e) => e.text.trim().length > 0)
+      .sort((a, b) => a.sort_order - b.sort_order)
+
+    userNotes = entries
+      .map((e) => {
+        if (e.meeting_ms === null) return e.text
+        const min = Math.floor(e.meeting_ms / 60000)
+        const sec = Math.floor((e.meeting_ms % 60000) / 1000)
+        return `[${min}:${sec.toString().padStart(2, '0')}] ${e.text}`
+      })
+      .join('\n')
+  } else if (noteRow?.content?.trim()) {
+    userNotes = noteRow.content
+  }
+
+  const analysis = await analyseMeeting(
+    rawText,
+    {
+      title: meeting.title ?? 'Untitled meeting',
+      date: meeting.started_at ?? new Date().toISOString(),
+      platform: meeting.platform,
+      durationMinutes: Math.round((meeting.duration_seconds ?? 0) / 60),
+      attendees: (meeting.attendees as any[]) ?? [],
+    },
+    userNotes
+  )
+
+  const hasDocument = 'sections' in analysis
+  const documentJson = hasDocument ? (analysis as DocumentResult) : null
 
   // 5. Store summary
   await supabase.from('summaries').insert({
@@ -89,6 +122,8 @@ export async function runMeetingPipeline(input: PipelineInput) {
     topics: analysis.topics,
     sentiment: analysis.sentiment,
     model_used: 'claude-sonnet-4-6',
+    document_json: documentJson,
+    has_user_notes: !!userNotes,
   })
 
   // 6. Store action items
