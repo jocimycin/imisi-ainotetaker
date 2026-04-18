@@ -6,11 +6,11 @@ import { detectPlatform } from '@imisi/bots/recall/client'
 import { z } from 'zod'
 
 const ScheduleSchema = z.object({
-  title: z.string().min(1),
+  title: z.string().optional(),
   joinUrl: z.string().url(),
   // Optional: omit or pass current time for "Join now" mode
   startAt: z.string().datetime().optional(),
-  attendees: z.array(z.object({ name: z.string(), email: z.string().email().optional() })),
+  attendees: z.array(z.object({ name: z.string(), email: z.string().email().optional() })).optional().default([]),
 })
 
 export async function POST(req: NextRequest) {
@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { title, joinUrl, attendees } = parsed.data
+  const { joinUrl, attendees } = parsed.data
+  const title = parsed.data.title || 'Meeting'
   const startAt = parsed.data.startAt ?? new Date().toISOString()
   const platform = detectPlatform(joinUrl)
 
