@@ -44,6 +44,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS meeting_notes_updated_at ON meeting_notes;
 CREATE TRIGGER meeting_notes_updated_at
   BEFORE UPDATE ON meeting_notes
   FOR EACH ROW EXECUTE FUNCTION update_meeting_notes_updated_at();
