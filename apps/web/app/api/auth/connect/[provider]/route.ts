@@ -7,7 +7,6 @@ const SCOPES: Record<string, string[]> = {
   google: [
     'https://www.googleapis.com/auth/calendar.readonly',
     'https://www.googleapis.com/auth/userinfo.email',
-    'offline',
   ],
   microsoft: [
     'https://graph.microsoft.com/Calendars.Read',
@@ -30,7 +29,7 @@ const AUTH_URLS: Record<string, string> = {
 
 const CLIENT_IDS: Record<string, string | undefined> = {
   google: process.env.GOOGLE_CLIENT_ID,
-  microsoft: process.env.MICROSOFT_CLIENT_ID,
+  microsoft: process.env.AZURE_CLIENT_ID,
   notion: process.env.NOTION_CLIENT_ID,
   asana: process.env.ASANA_CLIENT_ID,
   jira: process.env.JIRA_CLIENT_ID,
@@ -55,7 +54,7 @@ export async function GET(
     return NextResponse.json({ error: `${provider} client ID not configured` }, { status: 500 })
   }
 
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/connect/callback?provider=${provider}`
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/connect/callback/${provider}`
 
   // Store state = base64(userId:provider) for CSRF validation
   const state = Buffer.from(`${user.id}:${provider}`).toString('base64url')
