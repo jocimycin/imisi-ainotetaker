@@ -1,7 +1,6 @@
 // app/api/cron/sync-calendars/route.ts
-// Vercel Cron — fires every 5 minutes (see vercel.json).
-// Replaces the Inngest calendarSyncCron + calendarSyncUser pair.
-// Vercel sets CRON_SECRET automatically and sends it as Authorization: Bearer <secret>.
+// Calendar sync — triggered by QStash Schedule (every minute) or manually via /api/integrations/sync-now.
+// Auth: Bearer <CRON_SECRET> in Authorization header (Vercel sets this automatically; QStash passes it as a custom header).
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -17,7 +16,11 @@ function getServiceSupabase() {
   )
 }
 
-export async function GET(req: NextRequest) {
+// QStash sends POST; manual/Vercel-cron sends GET — handle both
+export async function POST(req: NextRequest) { return handler(req) }
+export async function GET(req: NextRequest) { return handler(req) }
+
+async function handler(req: NextRequest) {
   // Verify this is a genuine Vercel Cron call
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
