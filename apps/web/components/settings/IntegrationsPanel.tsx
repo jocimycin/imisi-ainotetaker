@@ -2,6 +2,7 @@
 // components/settings/IntegrationsPanel.tsx
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const INTEGRATIONS = [
   {
@@ -104,6 +105,7 @@ function formatLastSynced(iso: string | null | undefined): string {
 }
 
 export function IntegrationsPanel({ connectedProviders, integrations = [] }: IntegrationsPanelProps) {
+  const router = useRouter()
   const [syncStates, setSyncStates] = useState<Record<string, boolean>>(() => {
     const map: Record<string, boolean> = {}
     for (const i of integrations) {
@@ -118,6 +120,7 @@ export function IntegrationsPanel({ connectedProviders, integrations = [] }: Int
     }
     return map
   })
+  const [syncing, setSyncing] = useState(false)
 
   const lastSyncedMap: Record<string, string | null | undefined> = {}
   for (const i of integrations) {
@@ -151,11 +154,29 @@ export function IntegrationsPanel({ connectedProviders, integrations = [] }: Int
     })
   }
 
+  async function syncNow() {
+    setSyncing(true)
+    await fetch('/api/integrations/sync-now', { method: 'POST' })
+    setSyncing(false)
+    router.refresh()
+  }
+
   return (
     <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
-      <div className="px-4 py-3 border-b border-gray-100">
-        <h2 className="text-sm font-medium">Platform integrations</h2>
-        <p className="text-xs text-gray-400 mt-0.5">Connect your meeting platforms so Imisi can join automatically</p>
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-medium">Platform integrations</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Connect your meeting platforms so Imisi can join automatically</p>
+        </div>
+        {connectedProviders.some((p) => ['google', 'microsoft'].includes(p)) && (
+          <button
+            onClick={syncNow}
+            disabled={syncing}
+            className="text-xs text-brand-600 hover:text-brand-700 font-medium disabled:opacity-50 transition-colors"
+          >
+            {syncing ? 'Syncing…' : 'Sync now'}
+          </button>
+        )}
       </div>
       <div className="divide-y divide-gray-50">
         {INTEGRATIONS.map((integration) => {
@@ -220,7 +241,7 @@ export function IntegrationsPanel({ connectedProviders, integrations = [] }: Int
                             {formatLastSynced(lastSyncedMap[integration.provider])}
                           </span>
                           {!lastSyncedMap[integration.provider] && (
-                            <span className="ml-1 text-amber-500">— check Inngest env vars</span>
+                            <span className="ml-1 text-amber-500">— click Sync now to start</span>
                           )}
                         </p>
                       )}

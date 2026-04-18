@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { IntegrationsPanel } from '@/components/settings/IntegrationsPanel'
 import { BillingPanel } from '@/components/settings/BillingPanel'
+import { NotificationsPanel } from '@/components/settings/NotificationsPanel'
 
 export default async function SettingsPage() {
   const supabase = createClient()
@@ -11,9 +12,9 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('full_name, email, plan, stripe_customer_id')
+    .select('full_name, email, plan, stripe_customer_id, preferences')
     .eq('id', user.id)
-    .single() as { data: { full_name?: string | null; email: string; plan?: string | null; stripe_customer_id?: string | null } | null; error: unknown }
+    .single() as { data: { full_name?: string | null; email: string; plan?: string | null; stripe_customer_id?: string | null; preferences?: Record<string, boolean> | null } | null; error: unknown }
 
   const { data: integrations } = await supabase
     .from('integrations')
@@ -56,25 +57,7 @@ export default async function SettingsPage() {
         hasStripeCustomer={!!profile?.stripe_customer_id}
       />
 
-      <div className="bg-surface-card border border-gray-100/80 rounded-2xl overflow-hidden shadow-card">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-medium">Notifications</h2>
-        </div>
-        <div className="p-4 space-y-3">
-          {[
-            { label: 'Summary email after each meeting', default: true },
-            { label: 'Action item reminder emails', default: true },
-            { label: 'Bot joining confirmation', default: false },
-          ].map((pref) => (
-            <label key={pref.label} className="flex items-center justify-between cursor-pointer">
-              <span className="text-sm text-gray-700">{pref.label}</span>
-              <div className={`w-9 h-5 rounded-full relative transition-colors ${pref.default ? 'bg-brand-600' : 'bg-gray-200'}`}>
-                <div className={`absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform ${pref.default ? 'translate-x-4' : 'translate-x-0.5'}`} />
-              </div>
-            </label>
-          ))}
-        </div>
-      </div>
+      <NotificationsPanel preferences={profile?.preferences ?? {}} />
     </div>
   )
 }

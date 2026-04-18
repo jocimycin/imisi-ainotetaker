@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { clsx } from 'clsx'
 import { format, isToday, isTomorrow } from 'date-fns'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Meeting } from '@/types/database'
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -23,7 +25,12 @@ const STATUS_CONFIG = {
   failed:     { label: 'Failed',     bar: 'bg-red-400', pill: 'bg-red-50 text-red-700', dot: 'bg-red-400' },
 }
 
+const THIRTY_MIN = 30 * 60 * 1000
+
 export function MeetingCard({ meeting }: { meeting: Meeting }) {
+  const router = useRouter()
+  const [starting, setStarting] = useState(false)
+
   const status = STATUS_CONFIG[meeting.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.scheduled
   const platform = PLATFORM_LABELS[meeting.platform] ?? 'Meeting'
   const isActive = meeting.status === 'live' || meeting.status === 'joining'
@@ -37,6 +44,22 @@ export function MeetingCard({ meeting }: { meeting: Meeting }) {
     : ''
 
   const attendees = (meeting.attendees as Array<{ name: string }>) ?? []
+
+  // Show "Start Imisi" button when meeting is scheduled and starting within 30 min (or already started)
+  const showStartButton =
+    meeting.status === 'scheduled' &&
+    meeting.join_url &&
+    meeting.started_at &&
+    Date.now() >= new Date(meeting.started_at).getTime() - THIRTY_MIN
+
+  async function startImisi(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setStarting(true)
+    await fetch(`/api/meetings/${meeting.id}/start`, { method: 'POST' })
+    setStarting(false)
+    router.refresh()
+  }
 
   return (
     <Link href={`/dashboard/meetings/${meeting.id}`}>
@@ -54,7 +77,16 @@ export function MeetingCard({ meeting }: { meeting: Meeting }) {
             <p className="text-sm font-medium text-gray-900 leading-snug line-clamp-1 flex-1">
               {meeting.title ?? 'Untitled meeting'}
             </p>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {showStartButton && (
+                <button
+                  onClick={startImisi}
+                  disabled={starting}
+                  className="text-xs px-2.5 py-1 bg-brand-600 text-white rounded-full font-medium hover:bg-brand-700 transition-colors disabled:opacity-60"
+                >
+                  {starting ? 'Starting…' : 'Start Imisi'}
+                </button>
+              )}
               <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1', status.pill)}>
                 <span className={clsx('w-1.5 h-1.5 rounded-full flex-shrink-0', status.dot)} />
                 {status.label}
